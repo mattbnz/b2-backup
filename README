@@ -1,0 +1,8 @@
+1) make sure there's a GPG key in root's keyring
+2) make sure the GPG key is backed up somewhere safe
+3) make sure the password and keyid for the GPG key is in local.conf
+4) make sure duplicity is installed (>0.7.18, or with https://bugs.launchpad.net/duplicity/+bug/1785520 fixed)
+5) make sure backblaze-b2 is installed (maybe)
+6) make sure python-pip is installed
+7) pip install b2
+8) configure list of desired backups in backups

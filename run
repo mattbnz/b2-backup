@@ -1,0 +1,69 @@
+#!/bin/bash
+B_DIR=/usr/local/backup
+host=$(hostname -s)
+
+echo "Launching backups in background (parallel):"
+let count=0
+while read path name; do
+	${B_DIR}/do-backup "${path}" "${name}" "$$" &>"${B_DIR}/logs/${backup}.execlog" &
+	echo "+ ${name}"
+	let count=count+1
+done < "${B_DIR}/backups"
+
+echo -n "Waiting for backup jobs to complete... "
+wait
+echo "Done."
+
+email=$(mktemp)
+echo "SUMMARY:" >$email
+
+echo "Backup Results:"
+let ok=0
+while read path name; do
+	backup="${host}-${name}"
+  status=$(cat "${B_DIR}/logs/${backup}.success" 2>/dev/null)
+	if [ "$status" == "$$" ]; then
+		echo "- ${name} SUCCEEDED" | tee -a $email
+		let ok=ok+1
+	else
+		echo "- ${name} FAILED (check logs)" | tee -a $email
+	fi
+done < "${B_DIR}/backups"
+
+while read path name; do
+  backup="${host}-${name}"
+	echo -e "\n\n" >>$email
+	echo "== $name ($path) ==" >>$email
+	status=$(cat "${B_DIR}/logs/${backup}.success" 2>/dev/null)
+  if [ "$status" != "$$" ]; then
+		latest=$(find "${B_DIR}/logs" \
+			-regextype grep \
+		 	-regex ".*${backup}-[[:digit:]]\{8\}-[[:digit:]]\{6\}$" |
+			sort | tail -n1)
+		if [ -e "$latest" ]; then
+			echo -e "Last 10 lines of $latest ...\n" >>$email
+			tail -n 10 $latest >>$email
+			echo -e "\n--\n" >>$email
+		fi
+	fi
+	cat "${B_DIR}/logs/${backup}.status" >>$email
+done  < "${B_DIR}/backups"
+
+if [ ! -z "$BACKUP_EMAIL_TO" ]; then
+	mail -s "Backup Status ($host): $ok/$count succeeded" \
+		$BACKUP_EMAIL_TO <$email
+fi
+rm -f $email
+
+# Clean-up logs
+find "${B_DIR}/logs" \
+ -regextype grep \
+ -regex '.*[[:digit:]]\{8\}-[[:digit:]]\{6\}$' \
+ -type f \
+ -mtime +1 \
+ -execdir gzip '{}' \;
+find "${B_DIR}/logs" \
+ -type f \
+ -not -name *-status \
+ -mtime +62 \
+ -delete
