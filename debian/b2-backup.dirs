@@ -1,0 +1,3 @@
+/etc/b2-backup
+/var/log/b2-backup
+/var/lib/b2-backup

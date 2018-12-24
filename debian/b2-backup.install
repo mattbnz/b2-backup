@@ -1,0 +1,4 @@
+do-backup /usr/sbin
+run-backups /usr/sbin
+local.conf /etc/b2-backup
+backblaze.conf /etc/b2-backup

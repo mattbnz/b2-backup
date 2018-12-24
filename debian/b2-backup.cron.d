@@ -1,6 +1,5 @@
 # /etc/cron.d/backup
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-BACKUP_EMAIL_TO=backups@mattb.net.nz
 
-24 4    * * *   root	/usr/local/backup/run-backups >/dev/null
+24 4    * * *   root	/usr/sbin/run-backups >/dev/null
