@@ -1,61 +1,80 @@
 #!/bin/bash -e
-B_DIR=$(dirname "$0")
-source "${B_DIR}/backblaze.conf"
-source "${B_DIR}/local.conf"
+source /etc/b2-backup/local.conf
+CONF_DIR=${CONF_DIR:-/etc/b2-backup}
+STATE_DIR=${STATE_DIR:-/var/lib/b2-backup}
+LOG_DIR=${LOG_DIR:-/var/log/b2-backup}
+
+source "${CONF_DIR}/backblaze.conf"
 
 host="$(hostname -s)"
 path="$1"
 name="$2"
 runid="$3"
 backup="${host}-${name}"
-logfile="${B_DIR}/logs/${backup}-$(date +%Y%m%d-%H%M%S)"
-statusfile="${B_DIR}/logs/${backup}.status"
-successfile="${B_DIR}/logs/${backup}.success"
+logfile="${LOG_DIR}/${backup}-$(date +%Y%m%d-%H%M%S)"
+statusfile="${LOG_DIR}/${backup}.status"
+successfile="${LOG_DIR}/${backup}.success"
 
 if [ ! -d "${path}" ]; then
 	echo "bad path: ${path}"
 	exit 1
 fi
+if [ -z "${name}" ]; then
+    echo "bad backup name: ${name}"
+    exit 1
+fi
+if [ -z "${ENC_SIGN_KEY}" ]; then
+    echo "encryption/signing key not specified!"
+    exit 1
+fi
+if [ -z "${B2_ACCOUNT_ID}" ]; then
+    echo "B2 account ID not specified!"
+    exit 1
+fi
+if [ -z "${B2_APP_KEY}" ]; then
+    echo "B2 app key not specified!"
+    exit 1
+fi
+runid=${runid:-$$}
 
-mkdir -p "${B_DIR}/logs"
 rm -f "${successfile}"
 
 # Initial backup
 duplicity \
- --archive-dir "${B_DIR}/.state" \
+ --archive-dir "${STATE_DIR}" \
  --asynchronous-upload \
  --encrypt-sign-key "${ENC_SIGN_KEY}" \
  --full-if-older-than 31D \
- --include-filelist "${B_DIR}/${name}-include" \
+ --include-filelist "${CONF_DIR}/${name}-include" \
  --exclude-if-present .nobackup \
- --exclude-filelist "${B_DIR}/${name}-exclude" \
+ --exclude-filelist "${CONF_DIR}/${name}-exclude" \
  --name "${backup}" \
  --verbosity info \
- "${path}" "b2://${ACCOUNT_ID}:${APP_KEY}@mattb-${backup}" \
+ "${path}" "b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-${backup}" \
  2>&1 >"${logfile}"
-tail -n30 "${logfile}"
 
 # Record stats
 duplicity \
  collection-status \
- "b2://${ACCOUNT_ID}:${APP_KEY}@mattb-${backup}" \
+ "b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-${backup}" \
  2>&1 >>"${logfile}"
 
 # Remove old backups
 duplicity remove-all-inc-of-but-n-full \
  2 \
- "b2://${ACCOUNT_ID}:${APP_KEY}@mattb-${backup}" \
+ "b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-${backup}" \
  2>&1 >>"${logfile}"
 duplicity remove-older-than \
  365D \
- "b2://${ACCOUNT_ID}:${APP_KEY}@mattb-${backup}" \
+ "b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-${backup}" \
  2>&1 >>"${logfile}"
 
 # Check stats again
 duplicity \
  collection-status \
- "b2://${ACCOUNT_ID}:${APP_KEY}@mattb-${backup}" \
+ "b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-${backup}" \
  2>&1 | tee -a "${logfile}" | tee "${statusfile}"
 
 # Record success
 echo "$runid" >"${successfile}"
+exit 0
