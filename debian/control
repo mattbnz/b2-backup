@@ -7,7 +7,7 @@ Standards-Version: 4.1.2
 Homepage: https://github.com/mattbnz/b2-backup
 
 Package: b2-backup
-Architecture: any
+Architecture: all
 Depends: duplicity (>=0.7.18), python-pip, mailutils, ${misc:Depends}
 Description: scripts to backup to b2 using duplicity
  A script and associated cron machinery to backup a set of local directories to
