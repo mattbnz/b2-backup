@@ -42,35 +42,43 @@ rm -f "${successfile}"
 # Initial backup
 duplicity \
  --archive-dir "${STATE_DIR}" \
+ --name "${backup}" \
  --asynchronous-upload \
  --encrypt-sign-key "${ENC_SIGN_KEY}" \
  --full-if-older-than 31D \
  --include-filelist "${CONF_DIR}/${name}-include" \
  --exclude-if-present .nobackup \
  --exclude-filelist "${CONF_DIR}/${name}-exclude" \
- --name "${backup}" \
  --verbosity info \
  "${path}" "b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-${backup}" \
  2>&1 >"${logfile}"
 
 # Record stats
 duplicity \
+ --archive-dir "${STATE_DIR}" \
+ --name "${backup}" \
  collection-status \
  "b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-${backup}" \
  2>&1 >>"${logfile}"
 
 # Remove old backups
-duplicity remove-all-inc-of-but-n-full \
- 2 \
+duplicity \
+ --archive-dir "${STATE_DIR}" \
+ --name "${backup}" \
+ remove-all-inc-of-but-n-full 2 \
  "b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-${backup}" \
  2>&1 >>"${logfile}"
-duplicity remove-older-than \
- 365D \
+duplicity \
+ --archive-dir "${STATE_DIR}" \
+ --name "${backup}" \
+ remove-older-than 365D \
  "b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-${backup}" \
  2>&1 >>"${logfile}"
 
 # Check stats again
 duplicity \
+ --archive-dir "${STATE_DIR}" \
+ --name "${backup}" \
  collection-status \
  "b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-${backup}" \
  2>&1 | tee -a "${logfile}" | tee "${statusfile}"

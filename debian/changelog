@@ -1,6 +1,6 @@
-b2-backup (20181225-1) internal; urgency=medium
+b2-backup (20181226) internal; urgency=medium
 
   [ Matt Brown ]
   * Initial Release.
 
- -- matt <matt@home.mattb.net.nz>  Tue, 25 Dec 2018 23:25:04 +1300
+ -- matt <matt@home.mattb.net.nz>  Wed, 26 Dec 2018 00:53:08 +1300
