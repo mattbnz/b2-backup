@@ -68,6 +68,7 @@ duplicity \
  --archive-dir "${STATE_DIR}" \
  --name "${backup}" \
  remove-all-inc-of-but-n-full 2 \
+ --force \
  "b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-${backup}" \
  2>&1 >>"${logfile}"
 
@@ -76,6 +77,7 @@ duplicity \
  --archive-dir "${STATE_DIR}" \
  --name "${backup}" \
  remove-older-than 365D \
+ --force \
  "b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-${backup}" \
  2>&1 >>"${logfile}"
 
