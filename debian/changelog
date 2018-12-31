@@ -1,3 +1,9 @@
+b2-backup (20181231) internal; urgency=medium
+
+  * Fixes clean-up/removal steps; improves logging.
+
+ -- matt <matt@home.mattb.net.nz>  Mon, 31 Dec 2018 13:30:27 +1300
+
 b2-backup (20181226) internal; urgency=medium
 
   [ Matt Brown ]
