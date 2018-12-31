@@ -54,6 +54,7 @@ duplicity \
  2>&1 >"${logfile}"
 
 # Record stats
+echo "==== Status (pre-cleanup) ====" >>"${logfile}"
 duplicity \
  --archive-dir "${STATE_DIR}" \
  --name "${backup}" \
@@ -62,12 +63,15 @@ duplicity \
  2>&1 >>"${logfile}"
 
 # Remove old backups
+echo "-- remove-all-inc-of-but-n-full --" >>"${logfile}"
 duplicity \
  --archive-dir "${STATE_DIR}" \
  --name "${backup}" \
  remove-all-inc-of-but-n-full 2 \
  "b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-${backup}" \
  2>&1 >>"${logfile}"
+
+echo "-- remove-old-than --" >>"${logfile}"
 duplicity \
  --archive-dir "${STATE_DIR}" \
  --name "${backup}" \
@@ -76,6 +80,7 @@ duplicity \
  2>&1 >>"${logfile}"
 
 # Check stats again
+echo "==== Status (post-cleanup) ====" >>"${logfile}"
 duplicity \
  --archive-dir "${STATE_DIR}" \
  --name "${backup}" \
