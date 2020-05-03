@@ -1,3 +1,9 @@
+b2-backup (20181231-2) internal; urgency=medium
+
+  * Make pip dependency work with python3 (ubuntu) or python2 (debian)
+
+ -- Matt Brown <mattb@debian.org>  Mon, 04 May 2020 00:09:48 +1200
+
 b2-backup (20181231-1) internal; urgency=medium
 
   * 2nd attempt at fixing clean-up/removal steps.
