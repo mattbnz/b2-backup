@@ -5,6 +5,7 @@ STATE_DIR=${STATE_DIR:-/var/lib/b2-backup}
 LOG_DIR=${LOG_DIR:-/var/log/b2-backup}
 
 source "${CONF_DIR}/backblaze.conf"
+DEFAULT_TARGET_PREFIX="b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-"
 
 host="$(hostname -s)"
 path="$1"
@@ -37,6 +38,11 @@ if [ -z "${B2_APP_KEY}" ]; then
 fi
 runid=${runid:-$$}
 
+if [ -z "${TARGET_PREFIX}" ]; then
+    TARGET_PREFIX="$DEFAULT_TARGET_PREFIX"
+fi
+target="${TARGET_PREFIX}${backup}"
+
 rm -f "${successfile}"
 
 # Initial backup
@@ -50,8 +56,7 @@ duplicity \
  --exclude-if-present .nobackup \
  --exclude-filelist "${CONF_DIR}/${name}-exclude" \
  --verbosity info \
- "${path}" "b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-${backup}" \
- 2>&1 >"${logfile}"
+ "${path}" "$target" 2>&1 >"${logfile}"
 
 # Record stats
 echo "==== Status (pre-cleanup) ====" >>"${logfile}"
@@ -59,8 +64,7 @@ duplicity \
  --archive-dir "${STATE_DIR}" \
  --name "${backup}" \
  collection-status \
- "b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-${backup}" \
- 2>&1 >>"${logfile}"
+ "$target" 2>&1 >>"${logfile}"
 
 # Remove old backups
 echo "-- remove-all-inc-of-but-n-full --" >>"${logfile}"
@@ -69,8 +73,7 @@ duplicity \
  --name "${backup}" \
  remove-all-inc-of-but-n-full 2 \
  --force \
- "b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-${backup}" \
- 2>&1 >>"${logfile}"
+ "$target" 2>&1 >>"${logfile}"
 
 echo "-- remove-old-than --" >>"${logfile}"
 duplicity \
@@ -78,8 +81,7 @@ duplicity \
  --name "${backup}" \
  remove-older-than 365D \
  --force \
- "b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-${backup}" \
- 2>&1 >>"${logfile}"
+ "$target" 2>&1 >>"${logfile}"
 
 # Check stats again
 echo "==== Status (post-cleanup) ====" >>"${logfile}"
@@ -87,8 +89,7 @@ duplicity \
  --archive-dir "${STATE_DIR}" \
  --name "${backup}" \
  collection-status \
- "b2://${B2_ACCOUNT_ID}:${B2_APP_KEY}@mattb-${backup}" \
- 2>&1 | tee -a "${logfile}" | tee "${statusfile}"
+ "$target" 2>&1 | tee -a "${logfile}" | tee "${statusfile}"
 
 # Record success
 echo "$runid" >"${successfile}"
