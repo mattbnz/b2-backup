@@ -1,8 +1,8 @@
-b2-backup (20181231-2) internal; urgency=medium
+b2-backup (20201024-2) internal; urgency=medium
 
-  * Make pip dependency work with python3 (ubuntu) or python2 (debian)
+  * Enable backup targets to be configured in config.
 
- -- Matt Brown <mattb@debian.org>  Mon, 04 May 2020 00:09:48 +1200
+ -- Matt Brown <mattb@debian.org>  Sat, 24 Oct 2020 20:57:44 +1300
 
 b2-backup (20181231-1) internal; urgency=medium
 
