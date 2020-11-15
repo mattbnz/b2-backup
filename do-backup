@@ -45,13 +45,18 @@ target="${TARGET_PREFIX}${backup}"
 
 rm -f "${successfile}"
 
+DO_FULL=""
+if [ ! -e "${CONF_DIR}/${name}-onlyinc" ]; then
+    DO_FULL="--full-if-older-than 31D"
+fi
+
 # Initial backup
 duplicity \
  --archive-dir "${STATE_DIR}" \
  --name "${backup}" \
  --asynchronous-upload \
  --encrypt-sign-key "${ENC_SIGN_KEY}" \
- --full-if-older-than 31D \
+ $DO_FULL \
  --include-filelist "${CONF_DIR}/${name}-include" \
  --exclude-if-present .nobackup \
  --exclude-filelist "${CONF_DIR}/${name}-exclude" \
@@ -67,21 +72,23 @@ duplicity \
  "$target" 2>&1 >>"${logfile}"
 
 # Remove old backups
-echo "-- remove-all-inc-of-but-n-full --" >>"${logfile}"
-duplicity \
- --archive-dir "${STATE_DIR}" \
- --name "${backup}" \
- remove-all-inc-of-but-n-full 2 \
- --force \
- "$target" 2>&1 >>"${logfile}"
+if [ ! -z "$DO_FULL" ]; then
+    echo "-- remove-all-inc-of-but-n-full --" >>"${logfile}"
+    duplicity \
+     --archive-dir "${STATE_DIR}" \
+     --name "${backup}" \
+     remove-all-inc-of-but-n-full 2 \
+     --force \
+     "$target" 2>&1 >>"${logfile}"
 
-echo "-- remove-old-than --" >>"${logfile}"
-duplicity \
- --archive-dir "${STATE_DIR}" \
- --name "${backup}" \
- remove-older-than 365D \
- --force \
- "$target" 2>&1 >>"${logfile}"
+    echo "-- remove-old-than --" >>"${logfile}"
+    duplicity \
+     --archive-dir "${STATE_DIR}" \
+     --name "${backup}" \
+     remove-older-than 365D \
+     --force \
+     "$target" 2>&1 >>"${logfile}"
+fi
 
 # Check stats again
 echo "==== Status (post-cleanup) ====" >>"${logfile}"
