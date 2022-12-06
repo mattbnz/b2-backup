@@ -1,0 +1,17 @@
+groups:
+  - name: b2_backup_alerts
+    rules:
+    - alert: FailedBackup
+      expr: b2_backup_status{job="node"} < 1
+      labels:
+        severity: email
+      annotations:
+        summary: "B2 Backup job {{ $labels.backup }} has failed on {{ $labels.instance }}"
+
+    - alert: StaleBackup
+      expr: time() - b2_backup_timestamp > 172800
+      for: 2m
+      labels:
+        severity: email
+      annotations:
+        summary: "B2 Backup has not run in 2 days on {{ $labels.instance }}"
