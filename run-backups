@@ -3,6 +3,7 @@ source /etc/b2-backup/local.conf
 CONF_DIR=${CONF_DIR:-/etc/b2-backup}
 STATE_DIR=${STATE_DIR:-/var/lib/b2-backup}
 LOG_DIR=${LOG_DIR:-/var/log/b2-backup}
+PROM_EXPORTER_DIR=${PROM_EXPORTER_DIR:-/var/lib/prometheus/node-exporter}
 
 host=$(hostname -s)
 
@@ -18,6 +19,14 @@ echo -n "Waiting for backup jobs to complete... "
 wait
 echo "Done."
 
+prom=$(mktemp)
+echo "# HELP b2_backup_timestamp Timestamp that B2 Backup last reported data">$prom
+echo "# TYPE b2_backup_timestamp gauge">>$prom
+echo "b2_backup_timestamp $(date +%s)">>$prom
+
+echo "# HELP b2_backup_status B2 Backup status by name">>$prom
+echo "# TYPE b2_backup_status gauge">>$prom
+
 email=$(mktemp)
 echo "SUMMARY:" >$email
 
@@ -29,10 +38,18 @@ while read path name; do
 	if [ "$status" == "$$" ]; then
 		echo "- ${name} SUCCEEDED" | tee -a $email
 		let ok=ok+1
+		echo "b2_backup_status{backup=\"${name}\"} 1">>$prom
 	else
 		echo "- ${name} FAILED (check logs)" | tee -a $email
+		echo "b2_backup_status{backup=\"${name}\"} 0">>$prom
 	fi
 done < "${CONF_DIR}/backups"
+
+if [ -w "${PROM_EXPORTER_DIR}" ]; then
+	cp "${prom}" "${PROM_EXPORTER_DIR}"/b2_backup.prom
+	chmod 644 "${PROM_EXPORTER_DIR}"/b2_backup.prom
+fi
+rm -f $prom
 
 while read path name; do
   backup="${host}-${name}"
