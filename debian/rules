@@ -33,4 +33,6 @@ override_dh_fixperms:
 	chmod 750 debian/b2-backup/var/lib/b2-backup
 	chmod 750 debian/b2-backup/etc/b2-backup/*
 
-
+# Don't use Zstd, not yet supported in Debian
+override_dh_builddeb:
+	dh_builddeb -- -Zgzip

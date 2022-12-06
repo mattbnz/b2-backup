@@ -1,3 +1,10 @@
+b2-backup (20221206-2) internal; urgency=medium
+
+  * Prevent builds on Ubuntu using zstd compression, not yet
+    supported in Debian!
+
+ -- Matt Brown <mattb@debian.org>  Tue, 06 Dec 2022 15:24:47 +1300
+
 b2-backup (20221206-1) internal; urgency=medium
 
   * Add prometheus export capability.
