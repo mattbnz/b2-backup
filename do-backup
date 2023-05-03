@@ -45,9 +45,17 @@ target="${TARGET_PREFIX}${backup}"
 
 rm -f "${successfile}"
 
+if [ -e "${CONF_DIR}/${name}-vars" ]; then
+    source "${CONF_DIR}/${name}-vars"
+fi
+
+FULL_FREQ=${FULL_FREQ:-31D}
+INC_KEEP=${INC_KEEP:-2}
+FULL_EXPIRE=${FULL_EXPIRE:-365D}
+
 DO_FULL=""
 if [ ! -e "${CONF_DIR}/${name}-onlyinc" ]; then
-    DO_FULL="--full-if-older-than 31D"
+    DO_FULL="--full-if-older-than ${FULL_FREQ}"
 fi
 
 # Initial backup
@@ -77,7 +85,7 @@ if [ ! -z "$DO_FULL" ]; then
     duplicity \
      --archive-dir "${STATE_DIR}" \
      --name "${backup}" \
-     remove-all-inc-of-but-n-full 2 \
+     remove-all-inc-of-but-n-full ${INC_KEEP} \
      --force \
      "$target" 2>&1 >>"${logfile}"
 
@@ -85,7 +93,7 @@ if [ ! -z "$DO_FULL" ]; then
     duplicity \
      --archive-dir "${STATE_DIR}" \
      --name "${backup}" \
-     remove-older-than 365D \
+     remove-older-than ${FULL_EXPIRE} \
      --force \
      "$target" 2>&1 >>"${logfile}"
 fi
