@@ -1,3 +1,10 @@
+b2-backup (20230503-1) internal; urgency=medium
+
+  * New release
+     - Adds per-backup configuration support
+
+ -- Matt Brown <mattb@debian.org>  Wed, 03 May 2023 22:45:03 +1200
+
 b2-backup (20221206-2) internal; urgency=medium
 
   * Prevent builds on Ubuntu using zstd compression, not yet
