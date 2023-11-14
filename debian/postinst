@@ -19,15 +19,6 @@ set -e
 
 case "$1" in
     configure)
-        if which pip; then
-            PIP=$(which pip)
-        elif which pip3; then
-            PIP=$(which pip3)
-        else
-            echo "pip not found in postinst!" >&2
-            exit 1
-        fi
-        $PIP install b2
     ;;
     
     abort-upgrade|abort-remove|abort-deconfigure)
